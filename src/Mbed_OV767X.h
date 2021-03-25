@@ -4,8 +4,8 @@
  * Copyright (c) 2020 Arduino SA. All rights reserved.
  */
 
-#ifndef _ARUDINO_OV767X_H_
-#define _ARUDINO_OV767X_H_
+#ifndef _MBED_OS_OV767X_H_
+#define _MBED_OS_OV767X_H_
 
 #include "OV767X.h"
 

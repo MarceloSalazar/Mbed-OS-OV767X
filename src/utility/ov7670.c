@@ -8,8 +8,9 @@
  *
  * Copyright 2006-7 Jonathan Corbet <corbet@lwn.net>
  */
-#ifdef ARDUINO
+#ifdef __MBED__
 
+#include "mbed_retarget.h"
 #include <errno.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -46,7 +47,7 @@ struct v4l2_fract {
 
 extern void msleep(unsigned long ms);
 extern int arduino_i2c_read(unsigned short address, unsigned char reg, unsigned char *value);
-extern int arduino_i2c_write(unsigned short address, unsigned char reg, unsigned char value);
+extern int mbed_i2c_write(unsigned short address, unsigned char reg, unsigned char value);
 
 
 #include "ov7670.h"
@@ -266,7 +267,7 @@ struct ov7670_info {
 #if defined(CONFIG_MEDIA_CONTROLLER)
 	struct media_pad pad;
 #endif
-#ifndef ARDUINO
+#ifndef __MBED__
 	struct v4l2_ctrl_handler hdl;
 	struct {
 		/* gain cluster */
@@ -289,7 +290,7 @@ struct ov7670_info {
 	struct ov7670_win_size *wsize;
 	struct clk *clk;
 	int on;
-#ifndef ARDUINO
+#ifndef __MBED__
 	struct gpio_desc *resetb_gpio;
 	struct gpio_desc *pwdn_gpio;
 	unsigned int mbus_config;	/* Media bus configuration flags */
@@ -306,14 +307,14 @@ struct ov7670_info {
 
 static inline struct ov7670_info *to_state(struct v4l2_subdev *sd)
 {
-#ifdef ARDUINO
+#ifdef __MBED__
 	return (struct ov7670_info*)sd;
 #else
 	return container_of(sd, struct ov7670_info, sd);
 #endif
 }
 
-#ifndef ARDUINO
+#ifndef __MBED__
 static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
 {
 	return &container_of(ctrl->handler, struct ov7670_info, hdl)->sd;
@@ -521,18 +522,18 @@ static struct regval_list ov7670_fmt_raw[] = {
 };
 
 
-#ifdef ARDUINO
+#ifdef __MBED__
 
 static int ov7670_read(struct v4l2_subdev *sd, unsigned char reg,
 		unsigned char *value)
 {
-	return arduino_i2c_read(OV7670_I2C_ADDR >> 1, reg, value);
+	return mbed_i2c_read(OV7670_I2C_ADDR >> 1, reg, value);
 }
 
 static int ov7670_write(struct v4l2_subdev *sd, unsigned char reg,
 		unsigned char value)
 {
-	int ret = arduino_i2c_write(OV7670_I2C_ADDR >> 1, reg, value);
+	int ret = mbed_i2c_write(OV7670_I2C_ADDR >> 1, reg, value);
 
 	if (reg == REG_COM7 && (value & COM7_RESET))
 		msleep(5);  /* Wait for reset to run */
@@ -683,7 +684,7 @@ static int ov7670_write_array(struct v4l2_subdev *sd, struct regval_list *vals)
 /*
  * Stuff that knows about the sensor.
  */
-#ifdef ARDUINO
+#ifdef __MBED__
 int ov7670_reset(struct v4l2_subdev *sd, u32 val)
 #else
 static int ov7670_reset(struct v4l2_subdev *sd, u32 val)
@@ -700,7 +701,7 @@ static int ov7670_init(struct v4l2_subdev *sd, u32 val)
 	return ov7670_write_array(sd, ov7670_default_regs);
 }
 
-#ifdef ARDUINO
+#ifdef __MBED__
 int ov7670_detect(struct v4l2_subdev *sd)
 #else
 static int ov7670_detect(struct v4l2_subdev *sd)
@@ -745,7 +746,7 @@ static int ov7670_detect(struct v4l2_subdev *sd)
  * The magic matrix numbers come from OmniVision.
  */
 static struct ov7670_format_struct {
-#ifndef ARDUINO
+#ifndef __MBED__
 	u32 mbus_code;
 	enum v4l2_colorspace colorspace;
 #endif
@@ -753,7 +754,7 @@ static struct ov7670_format_struct {
 	int cmatrix[CMATRIX_LEN];
 } ov7670_formats[] = {
 	{
-#ifndef ARDUINO
+#ifndef __MBED__
 		.mbus_code	= MEDIA_BUS_FMT_YUYV8_2X8,
 		.colorspace	= V4L2_COLORSPACE_SRGB,
 #endif
@@ -761,7 +762,7 @@ static struct ov7670_format_struct {
 		.cmatrix	= { 128, -128, 0, -34, -94, 128 },
 	},
 	{
-#ifndef ARDUINO
+#ifndef __MBED__
 		.mbus_code	= MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE,
 		.colorspace	= V4L2_COLORSPACE_SRGB,
 #endif
@@ -769,7 +770,7 @@ static struct ov7670_format_struct {
 		.cmatrix	= { 179, -179, 0, -61, -176, 228 },
 	},
 	{
-#ifndef ARDUINO
+#ifndef __MBED__
 		.mbus_code	= MEDIA_BUS_FMT_RGB565_2X8_LE,
 		.colorspace	= V4L2_COLORSPACE_SRGB,
 #endif
@@ -777,7 +778,7 @@ static struct ov7670_format_struct {
 		.cmatrix	= { 179, -179, 0, -61, -176, 228 },
 	},
 	{
-#ifndef ARDUINO
+#ifndef __MBED__
 		.mbus_code	= MEDIA_BUS_FMT_SBGGR8_1X8,
 		.colorspace	= V4L2_COLORSPACE_SRGB,
 #endif
@@ -983,7 +984,7 @@ static void ov7675_get_framerate(struct v4l2_subdev *sd,
 		pll_factor = PLL_FACTOR;
 
 	clkrc++;
-#ifndef ARDUINO
+#ifndef __MBED__
 	if (info->fmt->mbus_code == MEDIA_BUS_FMT_SBGGR8_1X8)
 		clkrc = (clkrc >> 1);
 #endif
@@ -1006,7 +1007,7 @@ static int ov7675_apply_framerate(struct v4l2_subdev *sd)
 			    info->pll_bypass ? DBLV_BYPASS : DBLV_X4);
 }
 
-#ifdef ARDUINO
+#ifdef __MBED__
 int ov7675_set_framerate(struct v4l2_subdev *sd, struct v4l2_fract *tpf)
 #else
 static int ov7675_set_framerate(struct v4l2_subdev *sd,
@@ -1030,7 +1031,7 @@ static int ov7675_set_framerate(struct v4l2_subdev *sd,
 		pll_factor = info->pll_bypass ? 1 : PLL_FACTOR;
 		clkrc = (5 * pll_factor * info->clock_speed * tpf->numerator) /
 			(4 * tpf->denominator);
-#ifndef ARDUINO
+#ifndef __MBED__
 		if (info->fmt->mbus_code == MEDIA_BUS_FMT_SBGGR8_1X8)
 			clkrc = (clkrc << 1);
 #endif
@@ -1134,7 +1135,7 @@ static int ov7670_set_hw(struct v4l2_subdev *sd, int hstart, int hstop,
 }
 
 
-#ifndef ARDUINO
+#ifndef __MBED__
 static int ov7670_enum_mbus_code(struct v4l2_subdev *sd,
 		struct v4l2_subdev_pad_config *cfg,
 		struct v4l2_subdev_mbus_code_enum *code)
@@ -1233,7 +1234,7 @@ static int ov7670_apply_fmt(struct v4l2_subdev *sd)
 	/*
 	 * Configure the media bus through COM10 register
 	 */
-#ifndef ARDUINO
+#ifndef __MBED__
 	if (info->mbus_config & V4L2_MBUS_VSYNC_ACTIVE_LOW)
 		com10 |= COM10_VS_NEG;
 	if (info->mbus_config & V4L2_MBUS_HSYNC_ACTIVE_LOW)
@@ -1280,7 +1281,7 @@ static int ov7670_apply_fmt(struct v4l2_subdev *sd)
 	return 0;
 }
 
-#ifndef ARDUINO
+#ifndef __MBED__
 /*
  * Set a format.
  */
@@ -1572,7 +1573,7 @@ static void ov7670_calc_cmatrix(struct ov7670_info *info,
 
 
 
-#ifdef ARDUINO
+#ifdef __MBED__
 int ov7670_s_sat_hue(struct v4l2_subdev *sd, int sat, int hue)
 #else
 static int ov7670_s_sat_hue(struct v4l2_subdev *sd, int sat, int hue)
@@ -1599,7 +1600,7 @@ static unsigned char ov7670_abs_to_sm(unsigned char v)
 	return (128 - v) | 0x80;
 }
 
-#ifdef ARDUINO
+#ifdef __MBED__
 int ov7670_s_brightness(struct v4l2_subdev *sd, int value)
 #else
 static int ov7670_s_brightness(struct v4l2_subdev *sd, int value)
@@ -1616,7 +1617,7 @@ static int ov7670_s_brightness(struct v4l2_subdev *sd, int value)
 	return ret;
 }
 
-#ifdef ARDUINO
+#ifdef __MBED__
 int ov7670_s_contrast(struct v4l2_subdev *sd, int value)
 #else
 static int ov7670_s_contrast(struct v4l2_subdev *sd, int value)
@@ -1625,7 +1626,7 @@ static int ov7670_s_contrast(struct v4l2_subdev *sd, int value)
 	return ov7670_write(sd, REG_CONTRAS, (unsigned char) value);
 }
 
-#ifdef ARDUINO
+#ifdef __MBED__
 int ov7670_s_hflip(struct v4l2_subdev *sd, int value)
 #else
 static int ov7670_s_hflip(struct v4l2_subdev *sd, int value)
@@ -1644,7 +1645,7 @@ static int ov7670_s_hflip(struct v4l2_subdev *sd, int value)
 	return ret;
 }
 
-#ifdef ARDUINO
+#ifdef __MBED__
 int ov7670_s_vflip(struct v4l2_subdev *sd, int value)
 #else
 static int ov7670_s_vflip(struct v4l2_subdev *sd, int value)
@@ -1663,7 +1664,7 @@ static int ov7670_s_vflip(struct v4l2_subdev *sd, int value)
 	return ret;
 }
 
-#ifndef ARDUINO
+#ifndef __MBED__
 /*
  * GAIN is split between REG_GAIN and REG_VREF[7:6].  If one believes
  * the data sheet, the VREF parts should be the most significant, but
@@ -1681,7 +1682,7 @@ static int ov7670_g_gain(struct v4l2_subdev *sd, __s32 *value)
 }
 #endif
 
-#ifdef ARDUINO
+#ifdef __MBED__
 int ov7670_s_gain(struct v4l2_subdev *sd, int value)
 #else
 static int ov7670_s_gain(struct v4l2_subdev *sd, int value)
@@ -1702,7 +1703,7 @@ static int ov7670_s_gain(struct v4l2_subdev *sd, int value)
 /*
  * Tweak autogain.
  */
-#ifdef ARDUINO
+#ifdef __MBED__
 int ov7670_s_autogain(struct v4l2_subdev *sd, int value)
 #else
 static int ov7670_s_autogain(struct v4l2_subdev *sd, int value)
@@ -1722,7 +1723,7 @@ static int ov7670_s_autogain(struct v4l2_subdev *sd, int value)
 	return ret;
 }
 
-#ifdef ARDUINO
+#ifdef __MBED__
 int ov7670_s_exp(struct v4l2_subdev *sd, int value)
 #else
 static int ov7670_s_exp(struct v4l2_subdev *sd, int value)
@@ -1752,7 +1753,7 @@ static int ov7670_s_exp(struct v4l2_subdev *sd, int value)
 /*
  * Tweak autoexposure.
  */
-#ifdef ARDUINO
+#ifdef __MBED__
 int ov7670_s_autoexp(struct v4l2_subdev *sd, int value)
 #else
 static int ov7670_s_autoexp(struct v4l2_subdev *sd,
@@ -1773,7 +1774,7 @@ static int ov7670_s_autoexp(struct v4l2_subdev *sd,
 	return ret;
 }
 
-#ifndef ARDUINO
+#ifndef __MBED__
 static const char * const ov7670_test_pattern_menu[] = {
 	"No test output",
 	"Shifting \"1\"",
@@ -1782,7 +1783,7 @@ static const char * const ov7670_test_pattern_menu[] = {
 };
 #endif
 
-#ifdef ARDUINO
+#ifdef __MBED__
 int ov7670_s_test_pattern(struct v4l2_subdev *sd, int value)
 #else
 static int ov7670_s_test_pattern(struct v4l2_subdev *sd, int value)
@@ -1799,7 +1800,7 @@ static int ov7670_s_test_pattern(struct v4l2_subdev *sd, int value)
 				value & BIT(1) ? TEST_PATTTERN_1 : 0);
 }
 
-#ifndef ARDUINO
+#ifndef __MBED__
 static int ov7670_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
 {
 	struct v4l2_subdev *sd = to_sd(ctrl);
@@ -1883,7 +1884,7 @@ static void ov7670_power_on(struct v4l2_subdev *sd)
 	if (info->on)
 		return;
 
-#ifndef ARDUINO
+#ifndef __MBED__
 	clk_prepare_enable(info->clk);
 
 	if (info->pwdn_gpio)
@@ -1907,7 +1908,7 @@ static void ov7670_power_off(struct v4l2_subdev *sd)
 	if (!info->on)
 		return;
 
-#ifndef ARDUINO
+#ifndef __MBED__
 	clk_disable_unprepare(info->clk);
 
 	if (info->pwdn_gpio)
@@ -1917,7 +1918,7 @@ static void ov7670_power_off(struct v4l2_subdev *sd)
 	info->on = false;
 }
 
-#ifdef ARDUINO
+#ifdef __MBED__
 int ov7670_s_power(struct v4l2_subdev *sd, int on)
 #else
 static int ov7670_s_power(struct v4l2_subdev *sd, int on)
@@ -1933,7 +1934,7 @@ static int ov7670_s_power(struct v4l2_subdev *sd, int on)
 		ov7670_init(sd, 0);
 		ov7670_apply_fmt(sd);
 		ov7675_apply_framerate(sd);
-#ifndef ARDUINO
+#ifndef __MBED__
 		v4l2_ctrl_handler_setup(&info->hdl);
 #endif
 	} else {
@@ -1943,7 +1944,7 @@ static int ov7670_s_power(struct v4l2_subdev *sd, int on)
 	return 0;
 }
 
-#ifndef ARDUINO
+#ifndef __MBED__
 
 static void ov7670_get_default_format(struct v4l2_subdev *sd,
 				      struct v4l2_mbus_framefmt *format)
@@ -2028,7 +2029,7 @@ static const struct ov7670_devtype ov7670_devdata[] = {
 	},
 };
 
-#ifdef ARDUINO
+#ifdef __MBED__
 
 void* ov7670_alloc()
 {

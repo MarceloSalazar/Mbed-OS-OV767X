@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * This file is part of the Arduino_OX767X library.
- * Copyright (c) 2020 Arduino SA. All rights reserved.
+ * This file is based on the Arduino_OX767X library.
+ * https://github.com/arduino-libraries/Arduino_OV767X
  */
 
 #ifndef _OV767X_H_
 #define _OV767X_H_
 
-#include <Arduino.h>
 
 #define OV7670_VSYNC 8
 #define OV7670_HREF  A1

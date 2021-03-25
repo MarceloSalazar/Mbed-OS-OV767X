@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- * This file is part of the Arduino_OX767X library.
- * Copyright (c) 2020 Arduino SA. All rights reserved.
+ * This file is based on the Arduino_OX767X library.
+ * https://github.com/arduino-libraries/Arduino_OV767X
  */
 
-#include <Arduino.h>
-#include <Wire.h>
-
+#include "mbed.h"
 #include "OV767X.h"
 
 // if not defined in the variant
@@ -15,7 +13,8 @@
 #endif
 
 #ifndef portInputRegister
-#define portInputRegister(P) ((P == 0) ? &NRF_P0->IN : &NRF_P1->IN)
+// TODO
+//#define portInputRegister(P) ((P == 0) ? &NRF_P0->IN : &NRF_P1->IN)
 #endif
 
 extern "C" {
@@ -126,27 +125,33 @@ int OV767X::begin(int resolution, int format, int fps)
     return 0;
   }
 
-  pinMode(_vsyncPin, INPUT);
-  pinMode(_hrefPin, INPUT);
-  pinMode(_pclkPin, INPUT);
-  pinMode(_xclkPin, OUTPUT);
+  // TODO
+  //pinMode(_vsyncPin, INPUT);
+  //pinMode(_hrefPin, INPUT);
+  //pinMode(_pclkPin, INPUT);
+  //pinMode(_xclkPin, OUTPUT);
 
   for (int i = 0; i < 8; i++) {
-    pinMode(_dPins[i], INPUT);
+    // TODO
+    //pinMode(_dPins[i], INPUT);
   }
 
+  // TODO
+  /*
   _vsyncPort = portInputRegister(digitalPinToPort(_vsyncPin));
   _vsyncMask = digitalPinToBitMask(_vsyncPin);
   _hrefPort = portInputRegister(digitalPinToPort(_hrefPin));
   _hrefMask = digitalPinToBitMask(_hrefPin);
   _pclkPort = portInputRegister(digitalPinToPort(_pclkPin));
   _pclkMask = digitalPinToBitMask(_pclkPin);
+  */
 
   beginXClk();
 
-  Wire.begin();
+  // TODO
+  //Wire.begin();
 
-  delay(1000);
+  ThisThread::sleep_for(1s);
 
   if (ov7670_detect(_ov7670)) {
     end();
@@ -177,9 +182,11 @@ void OV767X::end()
 {
   endXClk();
 
-  pinMode(_xclkPin, INPUT);
+  // TODO
+  //pinMode(_xclkPin, INPUT);
 
-  Wire.end();
+  // TODO
+  //Wire.end();
 
   if (_ov7670) {
     ov7670_free(_ov7670);
@@ -232,12 +239,14 @@ int OV767X::bytesPerPixel() const
 //
 void OV767X::readFrame(void* buffer)
 {
+    /* TODO
 uint32_t ulPin = 33; // P1.xx set of GPIO is in 'pin' 32 and above
 NRF_GPIO_Type * port;
 
   port = nrf_gpio_pin_port_decode(&ulPin);
 
-  noInterrupts();
+  // TODO
+  //noInterrupts();
 
   uint8_t* b = (uint8_t*)buffer;
   int bytesPerRow = _width * _bytesPerPixel;
@@ -268,7 +277,9 @@ NRF_GPIO_Type * port;
     while ((*_hrefPort & _hrefMask) != 0); // wait for LOW
   }
 
-  interrupts();
+  // TODO
+  // interrupts();
+  */
 }
 
 void OV767X::testPattern(int pattern)
@@ -357,6 +368,8 @@ void OV767X::setPins(int vsync, int href, int pclk, int xclk, const int dpins[8]
 
 void OV767X::beginXClk()
 {
+    /* TODO
+
   // Generates 16 MHz signal using I2S peripheral
   NRF_I2S->CONFIG.MCKEN = (I2S_CONFIG_MCKEN_MCKEN_ENABLE << I2S_CONFIG_MCKEN_MCKEN_Pos);
   NRF_I2S->CONFIG.MCKFREQ = I2S_CONFIG_MCKFREQ_MCKFREQ_32MDIV2  << I2S_CONFIG_MCKFREQ_MCKFREQ_Pos;
@@ -366,11 +379,12 @@ void OV767X::beginXClk()
 
   NRF_I2S->ENABLE = 1;
   NRF_I2S->TASKS_START = 1;
+  */
 }
 
 void OV767X::endXClk()
 {
-  NRF_I2S->TASKS_STOP = 1;
+  //NRF_I2S->TASKS_STOP = 1;
 }
 
 OV767X Camera;
