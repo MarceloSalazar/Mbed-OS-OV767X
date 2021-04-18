@@ -19,3 +19,8 @@ TBD
 
 Review the issues on Github.
 
+## Resources
+
+* OV7670 datasheet: https://web.mit.edu/6.111/www/f2016/tools/OV7670_2006.pdf
+* OV7670 driver by Arduino https://github.com/arduino-libraries/Arduino_OV767X
+* SCCB specification https://www.waveshare.com/w/upload/1/14/OmniVision_Technologies_Seril_Camera_Control_Bus%28SCCB%29_Specification.pdf

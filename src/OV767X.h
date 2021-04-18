@@ -7,19 +7,19 @@
 #ifndef _OV767X_H_
 #define _OV767X_H_
 
-
-#define OV7670_VSYNC 8
-#define OV7670_HREF  A1
-#define OV7670_PLK   A0
-#define OV7670_XCLK  9
-#define OV7670_D0    10
-#define OV7670_D1    1
-#define OV7670_D2    0
-#define OV7670_D3    2
-#define OV7670_D4    3
-#define OV7670_D5    5
-#define OV7670_D6    6
-#define OV7670_D7    4
+// Configuration for ST Disco L4S5
+#define OV7670_VSYNC 8     // TBD
+#define OV7670_HREF  A1    // TBD
+#define OV7670_PLK   A0    // TBD
+#define OV7670_XCLK  PD_14 // PWM configuration done separely
+#define OV7670_D0    PA_0
+#define OV7670_D1    PA_1
+#define OV7670_D2    PA_2
+#define OV7670_D3    PA_3
+#define OV7670_D4    PA_4
+#define OV7670_D5    PA_5
+#define OV7670_D6    PA_6
+#define OV7670_D7    PA_7
 
 enum
 {

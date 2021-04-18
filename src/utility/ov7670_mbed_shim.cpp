@@ -5,83 +5,51 @@
  */
 
 #include "mbed.h"
+#include "SoftI2C.h"
+#include <chrono>
 
 #ifndef OV760_DEBUG
 #define OV760_DEBUG
 #endif
 
-
-//I2C i2c(I2C_SDA, I2C_SCL);
-
+SoftI2C i2c(I2C_SDA, I2C_SCL);
 
 extern "C" {
-  void msleep(unsigned long ms)
+  void msleep(unsigned long time_ms)
   {
-    ThisThread::sleep_for(ms);
+    ThisThread::sleep_for((chrono::milliseconds)time_ms);
   }
 
-  int mbed_i2c_read(unsigned short address, unsigned char reg, unsigned char *value)
-  {
-#ifdef OV760_DEBUG
-    printf("mbed_i2c_read: address = 0x%x", address);
-    //printf(address, HEX);
-    printf(", reg = 0x%", reg);
-    //printf(reg, HEX);
-#endif
-
-    // TODO
-    //Wire.beginTransmission(address);
-
-    // TODO
-    //Wire.write(reg);
-    /*
-    if (Wire.endTransmission() != 0) {
-#ifdef OV760_DEBUG
-    Serial.println();
-#endif
-      return -1;
-    }*/
-
-    /*
-    if (Wire.requestFrom(address, 1) != 1) {
-#ifdef OV760_DEBUG
-      Serial.println();
-#endif
-      return -1;
-    }
-
-    *value = Wire.read();
-    */
-
-#ifdef OV760_DEBUG
-    printf(", value = 0x%x", value);
-    //Serial.println(*value, HEX);
-#endif
-
+  int mbed_i2c_read(unsigned int address, unsigned char reg, unsigned char *value)
+  { 
+    // Write register address
+    i2c.start();
+    i2c.write(address & ~0x01);
+    wait_us(20);
+    i2c.write(reg);
+    i2c.stop();
+    wait_us(20);    
+ 
+    // Read data
+    i2c.start();
+    i2c.write(address | 0x01);
+    wait_us(20);
+    *value = i2c.read(0);
+    i2c.stop();
+ 
     return 0;
+
   }
 
-  int mbed_i2c_write(unsigned short address, unsigned char reg, unsigned char value)
+int mbed_i2c_write(unsigned int address, unsigned char reg, unsigned char value)
   {
-#ifdef OV760_DEBUG
-    printf("mbed_i2c_write: address = 0x%x", address);
-    //printf(address, HEX);
-    printf(", reg = 0x%x", reg);
-    //printf(reg, HEX);
-    printf(", value = 0x%x", value);
-    //Serial.println(value, HEX);
-#endif
-
-    // TODO
-    //Wire.beginTransmission(address);
-    //Wire.write(reg);
-    //Wire.write(value);
-   
-    /*
-    if (Wire.endTransmission() != 0) {
-      return -1;
-    }
-    */
+    i2c.start();
+    i2c.write(address & ~0x01);
+    wait_us(20);
+    i2c.write(reg);
+    wait_us(20);
+    i2c.write(value);
+    i2c.stop();
 
     return 0;
   }

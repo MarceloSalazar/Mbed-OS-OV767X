@@ -387,4 +387,3 @@ void OV767X::endXClk()
   //NRF_I2S->TASKS_STOP = 1;
 }
 
-OV767X Camera;

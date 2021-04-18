@@ -17,6 +17,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+// TODO: move elsewhere
+extern void msleep(unsigned long ms);
+extern int mbed_i2c_read(int address, unsigned char reg, unsigned char *value);
+extern int mbed_i2c_write(int address, unsigned char reg, unsigned char value);
+
 typedef uint8_t u8;
 typedef uint32_t u32;
 typedef int32_t __s32;
@@ -44,10 +49,6 @@ struct v4l2_fract {
 
 #define BIT(n) (1 << n)
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
-
-extern void msleep(unsigned long ms);
-extern int arduino_i2c_read(unsigned short address, unsigned char reg, unsigned char *value);
-extern int mbed_i2c_write(unsigned short address, unsigned char reg, unsigned char value);
 
 
 #include "ov7670.h"
@@ -527,13 +528,13 @@ static struct regval_list ov7670_fmt_raw[] = {
 static int ov7670_read(struct v4l2_subdev *sd, unsigned char reg,
 		unsigned char *value)
 {
-	return mbed_i2c_read(OV7670_I2C_ADDR >> 1, reg, value);
+	return mbed_i2c_read(OV7670_I2C_ADDR, reg, value);
 }
 
 static int ov7670_write(struct v4l2_subdev *sd, unsigned char reg,
 		unsigned char value)
 {
-	int ret = mbed_i2c_write(OV7670_I2C_ADDR >> 1, reg, value);
+	int ret = mbed_i2c_write(OV7670_I2C_ADDR, reg, value);
 
 	if (reg == REG_COM7 && (value & COM7_RESET))
 		msleep(5);  /* Wait for reset to run */
